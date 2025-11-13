@@ -14,6 +14,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * A class that manage all the methods and action on suppliers.
+ *
+ * @author Tsiry Valisoa
+ */
 @Service
 @AllArgsConstructor
 public class SupplierServiceImpl implements SupplierService {

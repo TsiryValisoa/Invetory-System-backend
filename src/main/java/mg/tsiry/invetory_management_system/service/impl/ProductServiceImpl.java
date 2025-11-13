@@ -21,6 +21,11 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * A class that handle all the operation on products.
+ *
+ * @author Tsiry Valisoa
+ */
 @Service
 @AllArgsConstructor
 @Slf4j

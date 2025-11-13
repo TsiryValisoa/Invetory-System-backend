@@ -29,6 +29,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 
+/**
+ * A class that handle all inventory-transaction operations.
+ *
+ * @author Tsiry Valisoa
+ */
 @Service
 @AllArgsConstructor
 public class TransactionServiceImpl implements TransactionService {

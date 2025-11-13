@@ -14,6 +14,11 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 
+/**
+ * A class that manages all operations related to product categories.
+ *
+ * @author Tsiry Valisoa
+ */
 @Service
 @RequiredArgsConstructor
 public class CategoryServiceImpl implements CategoryService {

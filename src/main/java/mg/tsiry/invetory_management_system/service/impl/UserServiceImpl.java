@@ -22,6 +22,11 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Optional;
 
+/**
+ * A class that manages user's information and authentication.
+ *
+ * @author Tsiry Valisoa
+ */
 @Service
 @RequiredArgsConstructor
 public class UserServiceImpl implements UserService {

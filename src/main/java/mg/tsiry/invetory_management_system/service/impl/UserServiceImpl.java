@@ -62,6 +62,7 @@ public class UserServiceImpl implements UserService {
         return GlobalResponse.builder()
                 .status(200)
                 .message("User created successfully.")
+                .user(userDto)
                 .build();
     }
 

@@ -9,6 +9,8 @@ import mg.tsiry.invetory_management_system.exception.NotFoundException;
 import mg.tsiry.invetory_management_system.service.CategoryService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -39,9 +41,15 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public GlobalResponse getAllCategories() {
+    public GlobalResponse getAllCategories(String search) {
 
-        List<Category> categoryList = categoryRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+        List<Category> categoryList;
+
+        if (search != null && !search.isEmpty()) {
+            categoryList = categoryRepository.findCategoryByName(search, Pageable.unpaged()).toList();
+        } else {
+            categoryList = categoryRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+        }
 
         List<CategoryDto> categoryDtoList = modelMapper.map(categoryList, new TypeToken<List<CategoryDto>>() {}.getType());
 

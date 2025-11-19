@@ -27,8 +27,8 @@ public class SupplierController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<GlobalResponse> listAllSupplier() {
-        return ResponseEntity.ok(supplierService.getAllSupplier());
+    public ResponseEntity<GlobalResponse> listAllSupplier(@RequestParam(required = false) String search) {
+        return ResponseEntity.ok(supplierService.getAllSupplier(search));
     }
 
     @PutMapping("/update/{id}")

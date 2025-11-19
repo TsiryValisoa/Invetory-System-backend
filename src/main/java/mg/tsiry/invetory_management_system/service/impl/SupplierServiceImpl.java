@@ -9,6 +9,7 @@ import mg.tsiry.invetory_management_system.exception.NotFoundException;
 import mg.tsiry.invetory_management_system.service.SupplierService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
@@ -39,9 +40,15 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     @Override
-    public GlobalResponse getAllSupplier() {
+    public GlobalResponse getAllSupplier(String search) {
 
-        List<Supplier> supplierList = supplierRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+        List<Supplier> supplierList;
+
+        if (search != null && !search.isEmpty()) {
+            supplierList = supplierRepository.findByNameOrAddress(search, Pageable.unpaged()).toList();
+        } else {
+            supplierList = supplierRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+        }
 
         List<SupplierDto> supplierDtoList = modelMapper.map(supplierList, new TypeToken<List<SupplierDto>>() {}.getType());
 

@@ -4,12 +4,15 @@ import lombok.AllArgsConstructor;
 import mg.tsiry.invetory_management_system.controller.response.GlobalResponse;
 import mg.tsiry.invetory_management_system.dto.ProductDto;
 import mg.tsiry.invetory_management_system.service.ProductService;
+import org.springframework.core.io.Resource;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
+import java.net.MalformedURLException;
 import java.time.LocalDate;
 
 @RestController
@@ -43,8 +46,28 @@ public class ProductController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<GlobalResponse> listAllProduct() {
-        return ResponseEntity.ok(productService.getAllProducts());
+    public ResponseEntity<GlobalResponse> listAllProduct(@RequestParam(required = false) String search) {
+        return ResponseEntity.ok(productService.getAllProducts(search));
+    }
+
+    @GetMapping("/image/{productId}")
+    public ResponseEntity<Resource> getImageProduct(@PathVariable Long productId) throws MalformedURLException {
+
+        Resource resource = productService.getProductImageById(productId);
+
+        String filename = resource.getFilename();
+        String extension = filename.substring(filename.lastIndexOf('.') + 1).toLowerCase();
+        String contentType = switch (extension) {
+            case "jpg", "jpeg" -> MediaType.IMAGE_JPEG_VALUE;
+            case "png" -> MediaType.IMAGE_PNG_VALUE;
+            case "gif" -> MediaType.IMAGE_GIF_VALUE;
+            default -> "application/octet-stream";
+        };
+
+        return ResponseEntity
+                .ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .body(resource);
     }
 
     @GetMapping("/{id}")

@@ -12,11 +12,18 @@ import mg.tsiry.invetory_management_system.exception.NotFoundException;
 import mg.tsiry.invetory_management_system.service.ProductService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
+import java.net.MalformedURLException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -66,9 +73,15 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public GlobalResponse getAllProducts() {
+    public GlobalResponse getAllProducts(String search) {
 
-        List<Product> productList = productRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+        List<Product> productList;
+
+        if (search != null && !search.isEmpty()) {
+            productList = productRepository.findProductByNameOrDescription(search, Pageable.unpaged()).toList();
+        } else {
+            productList = productRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+        }
 
         List<ProductDto> productDtoList = modelMapper.map(productList, new TypeToken<List<ProductDto>>() {}.getType());
 
@@ -77,6 +90,28 @@ public class ProductServiceImpl implements ProductService {
                 .message("Success.")
                 .products(productDtoList)
                 .build();
+    }
+
+    @Override
+    public Resource getProductImageById(Long productId) throws MalformedURLException {
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new NotFoundException("Product not found !"));
+
+        String filename = product.getImageUrl();
+
+        if (filename == null || filename.isEmpty()) {
+            throw new NotFoundException("Product has no associated image.");
+        }
+
+        Path imagePath = Paths.get(IMAGE_DIRECTORY, filename);
+        Resource resource = new UrlResource(imagePath.toUri());
+
+        if (!resource.exists() || !resource.isReadable()) {
+            throw new NotFoundException("Product image not found !");
+        }
+
+        return resource;
     }
 
     @Override
@@ -135,12 +170,13 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Transactional
     public GlobalResponse deleteProduct(Long id) {
 
-        productRepository.findById(id)
-        .orElseThrow(() -> new NotFoundException("Category not found!"));
+        Product product = productRepository.findById(id)
+        .orElseThrow(() -> new NotFoundException("Product not found!"));
 
-        productRepository.deleteById(id);
+        productRepository.delete(product);
 
         return GlobalResponse.builder()
                 .status(200)
@@ -175,6 +211,6 @@ public class ProductServiceImpl implements ProductService {
             throw new IllegalArgumentException("Error occurred while saving image" + e.getMessage());
         }
 
-        return imagePath;
+        return uniqueFileName;
     }
 }

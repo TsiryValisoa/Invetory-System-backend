@@ -1,6 +1,7 @@
 package mg.tsiry.invetory_management_system.service.impl;
 
 import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mg.tsiry.invetory_management_system.controller.response.GlobalResponse;
 import mg.tsiry.invetory_management_system.data.entities.Category;
@@ -12,6 +13,7 @@ import mg.tsiry.invetory_management_system.exception.NotFoundException;
 import mg.tsiry.invetory_management_system.service.ProductService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Pageable;
@@ -34,7 +36,7 @@ import java.util.UUID;
  * @author Tsiry Valisoa
  */
 @Service
-@AllArgsConstructor
+@RequiredArgsConstructor
 @Slf4j
 public class ProductServiceImpl implements ProductService {
 
@@ -42,7 +44,9 @@ public class ProductServiceImpl implements ProductService {
     private final ModelMapper modelMapper;
     private final CategoryRepository categoryRepository;
 
-    private static final String IMAGE_DIRECTORY = System.getProperty("user.dir") + "/product-image";
+    @Value("${IMAGE_DIRECTORY}")
+    private String baseImage;
+    private static final String BASE_DIRECTORY = "IMS-product-image";
 
     @Override
     public GlobalResponse addProduct(ProductDto productDto, MultipartFile multipartFile) {
@@ -104,7 +108,7 @@ public class ProductServiceImpl implements ProductService {
             throw new NotFoundException("Product has no associated image.");
         }
 
-        Path imagePath = Paths.get(IMAGE_DIRECTORY, filename);
+        Path imagePath = Paths.get(baseImage, "IMS-product-image", filename);
         Resource resource = new UrlResource(imagePath.toUri());
 
         if (!resource.exists() || !resource.isReadable()) {
@@ -138,9 +142,16 @@ public class ProductServiceImpl implements ProductService {
         //Check if image is associated with the update request
         if (multipartFile != null && !multipartFile.isEmpty()) {
             //Delete old image if exist
-            if (existingProduct.getImageUrl() != null) {
-                File oldFile = new File(existingProduct.getImageUrl());
-                oldFile.delete();
+            if (existingProduct.getImageUrl() != null &&
+                    !existingProduct.getImageUrl().isEmpty()) {
+                File oldFile = new File(baseImage +
+                        File.separator +
+                        BASE_DIRECTORY +
+                        File.separator +
+                        existingProduct.getImageUrl());
+                if (oldFile.exists()) {
+                    oldFile.delete();
+                }
             }
             String imagePath = saveImage(multipartFile);
             existingProduct.setImageUrl(imagePath);
@@ -176,6 +187,18 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById(id)
         .orElseThrow(() -> new NotFoundException("Product not found!"));
 
+        if (product.getImageUrl() != null &&
+                !product.getImageUrl().isEmpty()) {
+            File oldFile = new File(baseImage +
+                    File.separator +
+                    BASE_DIRECTORY +
+                    File.separator +
+                    product.getImageUrl());
+            if (oldFile.exists()) {
+                oldFile.delete();
+            }
+        }
+
         productRepository.delete(product);
 
         return GlobalResponse.builder()
@@ -192,16 +215,16 @@ public class ProductServiceImpl implements ProductService {
         }
 
         //Create the directory to store images if it doesn't exist
-        File directory = new File(IMAGE_DIRECTORY);
+        File directory = new File(baseImage + File.separator + BASE_DIRECTORY);
         if (!directory.exists()) {
-            directory.mkdir();
+            directory.mkdirs();
             log.info("Directory was created");
         }
 
         //Generate unique file name for the image
         String uniqueFileName = UUID.randomUUID() + "_" + imageFile.getOriginalFilename();
         //Get the absolute path of the image
-        String imagePath = IMAGE_DIRECTORY + File.separator + uniqueFileName;
+        String imagePath = directory.getAbsolutePath() + File.separator + uniqueFileName;
 
         try {
             File destinationFile = new File(imagePath);

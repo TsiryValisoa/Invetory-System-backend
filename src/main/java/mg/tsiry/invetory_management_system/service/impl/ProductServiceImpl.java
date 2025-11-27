@@ -1,6 +1,5 @@
 package mg.tsiry.invetory_management_system.service.impl;
 
-import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import mg.tsiry.invetory_management_system.controller.response.GlobalResponse;
@@ -77,14 +76,24 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public GlobalResponse getAllProducts(String search) {
+    public GlobalResponse getAllProducts(String search, List<Long> categoryId) {
 
         List<Product> productList;
 
         if (search != null && !search.isEmpty()) {
-            productList = productRepository.findProductByNameOrDescription(search, Pageable.unpaged()).toList();
+            productList = productRepository
+                    .findProductByNameOrDescription(
+                            search,
+                            Pageable.unpaged()
+                    ).toList();
+        } else if (categoryId != null && !categoryId.isEmpty()) {
+            productList = productRepository
+                    .findByCategoryIdIn(categoryId,
+                            Pageable.unpaged()
+                    ).toList();
         } else {
-            productList = productRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+            productList = productRepository
+                    .findAll(Sort.by(Sort.Direction.DESC, "id"));
         }
 
         List<ProductDto> productDtoList = modelMapper.map(productList, new TypeToken<List<ProductDto>>() {}.getType());

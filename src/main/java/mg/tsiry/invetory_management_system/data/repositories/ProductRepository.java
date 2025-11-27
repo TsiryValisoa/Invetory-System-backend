@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
@@ -17,4 +19,6 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
                     " OR LOWER(p.description) LIKE CONCAT('%', LOWER(:search), '%')"
     )
     Page<Product> findProductByNameOrDescription(@Param("search") String search, Pageable pageable);
+
+    Page<Product> findByCategoryIdIn(List<Long> categoryId, Pageable pageable);
 }

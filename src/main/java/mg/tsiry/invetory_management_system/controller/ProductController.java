@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.time.LocalDate;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/products")
@@ -46,8 +47,9 @@ public class ProductController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<GlobalResponse> listAllProduct(@RequestParam(required = false) String search) {
-        return ResponseEntity.ok(productService.getAllProducts(search));
+    public ResponseEntity<GlobalResponse> listAllProduct(@RequestParam(required = false) String search,
+                                                         @RequestParam(required = false) List<Long> categoryId) {
+        return ResponseEntity.ok(productService.getAllProducts(search, categoryId));
     }
 
     @GetMapping("/image/{productId}")

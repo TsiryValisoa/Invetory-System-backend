@@ -22,8 +22,9 @@ public class GlobalResponse {
     private String expirationTime;
 
     //Pagination
-    private Integer totalPages;
+    private Integer currentPage;
     private Long totalElement;
+    private Integer totalPage;
 
     //Data output optional
     private UserDto user;

@@ -150,6 +150,9 @@ public class TransactionServiceImpl implements TransactionService {
         return GlobalResponse.builder()
                 .status(200)
                 .message("Success.")
+                .totalElement(transactionPage.getTotalElements())
+                .currentPage(page)
+                .totalPage(transactionPage.getTotalPages())
                 .transactions(transactionDtoList)
                 .build();
     }

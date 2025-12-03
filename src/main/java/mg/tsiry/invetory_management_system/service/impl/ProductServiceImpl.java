@@ -15,6 +15,8 @@ import org.modelmapper.TypeToken;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -76,31 +78,29 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public GlobalResponse getAllProducts(String search, List<Long> categoryId) {
+    public GlobalResponse getAllProducts(int page, int size, String search, List<Long> categoryId) {
 
-        List<Product> productList;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        Page<Product> productPage;
 
         if (search != null && !search.isEmpty()) {
-            productList = productRepository
-                    .findProductByNameOrDescription(
-                            search,
-                            Pageable.unpaged()
-                    ).toList();
+            productPage = productRepository
+                    .findProductByNameOrDescription(search, pageable);
         } else if (categoryId != null && !categoryId.isEmpty()) {
-            productList = productRepository
-                    .findByCategoryIdIn(categoryId,
-                            Pageable.unpaged()
-                    ).toList();
+            productPage = productRepository
+                    .findByCategoryIdIn(categoryId, pageable);
         } else {
-            productList = productRepository
-                    .findAll(Sort.by(Sort.Direction.DESC, "id"));
+            productPage = productRepository.findAll(pageable);
         }
 
-        List<ProductDto> productDtoList = modelMapper.map(productList, new TypeToken<List<ProductDto>>() {}.getType());
+        List<ProductDto> productDtoList = modelMapper.map(productPage.getContent(), new TypeToken<List<ProductDto>>() {}.getType());
 
         return GlobalResponse.builder()
                 .status(200)
                 .message("Success.")
+                .currentPage(page)
+                .totalElement(productPage.getTotalElements())
+                .totalPage(productPage.getTotalPages())
                 .products(productDtoList)
                 .build();
     }

@@ -10,6 +10,7 @@ import mg.tsiry.invetory_management_system.service.CategoryService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -42,21 +43,25 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public GlobalResponse getAllCategories(String search) {
+    public GlobalResponse getAllCategories(int page, int size, String search) {
 
-        List<Category> categoryList;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        Page<Category> categoryPage;
 
         if (search != null && !search.isEmpty()) {
-            categoryList = categoryRepository.findCategoryByName(search, Pageable.unpaged()).toList();
+            categoryPage = categoryRepository.findCategoryByName(search, pageable);
         } else {
-            categoryList = categoryRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+            categoryPage = categoryRepository.findAll(pageable);
         }
 
-        List<CategoryDto> categoryDtoList = modelMapper.map(categoryList, new TypeToken<List<CategoryDto>>() {}.getType());
+        List<CategoryDto> categoryDtoList = modelMapper.map(categoryPage.getContent(), new TypeToken<List<CategoryDto>>() {}.getType());
 
         return GlobalResponse.builder()
                 .status(200)
                 .message("Success.")
+                .currentPage(page)
+                .totalElement(categoryPage.getTotalElements())
+                .totalPage(categoryPage.getTotalPages())
                 .categories(categoryDtoList)
                 .build();
 

@@ -9,6 +9,8 @@ import mg.tsiry.invetory_management_system.exception.NotFoundException;
 import mg.tsiry.invetory_management_system.service.SupplierService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
@@ -40,21 +42,25 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     @Override
-    public GlobalResponse getAllSupplier(String search) {
+    public GlobalResponse getAllSupplier(int page, int size, String search) {
 
-        List<Supplier> supplierList;
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        Page<Supplier> supplierPage;
 
         if (search != null && !search.isEmpty()) {
-            supplierList = supplierRepository.findByNameOrAddress(search, Pageable.unpaged()).toList();
+            supplierPage = supplierRepository.findByNameOrAddress(search, pageable);
         } else {
-            supplierList = supplierRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+            supplierPage = supplierRepository.findAll(pageable);
         }
 
-        List<SupplierDto> supplierDtoList = modelMapper.map(supplierList, new TypeToken<List<SupplierDto>>() {}.getType());
+        List<SupplierDto> supplierDtoList = modelMapper.map(supplierPage.getContent(), new TypeToken<List<SupplierDto>>() {}.getType());
 
         return GlobalResponse.builder()
                 .status(200)
                 .message("Success.")
+                .currentPage(page)
+                .totalElement(supplierPage.getTotalElements())
+                .totalPage(supplierPage.getTotalPages())
                 .suppliers(supplierDtoList)
                 .build();
     }

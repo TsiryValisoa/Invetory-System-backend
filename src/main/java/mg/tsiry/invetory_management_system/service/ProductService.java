@@ -11,7 +11,7 @@ import java.util.List;
 public interface ProductService {
 
     GlobalResponse addProduct(ProductDto productDto, MultipartFile multipartFile);
-    GlobalResponse getAllProducts(String search, List<Long> categoryId);
+    GlobalResponse getAllProducts(int page, int size, String search, List<Long> categoryId);
     Resource getProductImageById(Long productId) throws MalformedURLException;
     GlobalResponse getAllProductById(Long id);
     GlobalResponse updateProduct(ProductDto productDto, MultipartFile multipartFile);

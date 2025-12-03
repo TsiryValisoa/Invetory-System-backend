@@ -27,8 +27,10 @@ public class CategoryController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<GlobalResponse> listAllCategories(@RequestParam(name = "search", required = false) String search) {
-        return ResponseEntity.ok(categoryService.getAllCategories(search));
+    public ResponseEntity<GlobalResponse> listAllCategories(@RequestParam int page,
+                                                            @RequestParam int size,
+                                                            @RequestParam(required = false) String search) {
+        return ResponseEntity.ok(categoryService.getAllCategories(page, size, search));
     }
 
     @GetMapping("/{id}")

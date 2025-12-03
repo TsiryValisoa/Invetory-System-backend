@@ -47,9 +47,11 @@ public class ProductController {
     }
 
     @GetMapping("/all")
-    public ResponseEntity<GlobalResponse> listAllProduct(@RequestParam(required = false) String search,
+    public ResponseEntity<GlobalResponse> listAllProduct(@RequestParam int page,
+                                                         @RequestParam int size,
+                                                         @RequestParam(required = false) String search,
                                                          @RequestParam(required = false) List<Long> categoryId) {
-        return ResponseEntity.ok(productService.getAllProducts(search, categoryId));
+        return ResponseEntity.ok(productService.getAllProducts(page,size , search, categoryId));
     }
 
     @GetMapping("/image/{productId}")

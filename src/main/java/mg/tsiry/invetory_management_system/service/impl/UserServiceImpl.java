@@ -13,6 +13,9 @@ import mg.tsiry.invetory_management_system.security.JwtUtils;
 import mg.tsiry.invetory_management_system.service.UserService;
 import org.modelmapper.ModelMapper;
 import org.modelmapper.TypeToken;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -87,15 +90,25 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public GlobalResponse getAllUsers() {
+    public GlobalResponse getAllUsers(int page, int size, String search) {
 
-        List<User> userList = userRepository.findAll(Sort.by(Sort.Direction.DESC, "id"));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "id"));
+        Page<User> userPage;
 
-        List<UserDto> userDtoList = modelMapper.map(userList, new TypeToken<List<UserDto>>() {}.getType());
+        if (search != null && !search.isEmpty()) {
+            userPage = userRepository.findByNameOrRole(search, pageable);
+        } else {
+            userPage = userRepository.findAll(pageable);
+        }
+
+        List<UserDto> userDtoList = modelMapper.map(userPage.getContent(), new TypeToken<List<UserDto>>() {}.getType());
 
         return GlobalResponse.builder()
                 .status(200)
                 .message("Success.")
+                .currentPage(page)
+                .totalElement(userPage.getTotalElements())
+                .totalPage(userPage.getTotalPages())
                 .users(userDtoList)
                 .build();
     }

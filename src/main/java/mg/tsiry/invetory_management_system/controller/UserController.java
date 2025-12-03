@@ -21,8 +21,10 @@ public class UserController {
 
     @GetMapping("/all")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<GlobalResponse> getAllUser() {
-        return ResponseEntity.ok(userService.getAllUsers());
+    public ResponseEntity<GlobalResponse> getAllUser(@RequestParam int page,
+                                                     @RequestParam int size,
+                                                     @RequestParam(required = false) String search) {
+        return ResponseEntity.ok(userService.getAllUsers(page, size, search));
     }
 
     @GetMapping("/current")

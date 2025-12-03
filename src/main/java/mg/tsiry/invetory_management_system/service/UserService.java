@@ -7,7 +7,7 @@ public interface UserService {
 
     GlobalResponse addUser(UserDto userDto);
     GlobalResponse loginUser(UserDto userDto);
-    GlobalResponse getAllUsers();
+    GlobalResponse getAllUsers(int page, int size, String search);
     UserDto getCurrentLoggedUser();
     GlobalResponse updateUser(Long id, UserDto userDto);
     GlobalResponse deleteUser(Long id);

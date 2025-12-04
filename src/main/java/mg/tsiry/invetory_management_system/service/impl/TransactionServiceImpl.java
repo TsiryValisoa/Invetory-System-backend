@@ -9,6 +9,7 @@ import mg.tsiry.invetory_management_system.data.entities.User;
 import mg.tsiry.invetory_management_system.data.repositories.ProductRepository;
 import mg.tsiry.invetory_management_system.data.repositories.SupplierRepository;
 import mg.tsiry.invetory_management_system.data.repositories.TransactionRepository;
+import mg.tsiry.invetory_management_system.data.repositories.UserRepository;
 import mg.tsiry.invetory_management_system.dto.TransactionDto;
 import mg.tsiry.invetory_management_system.dto.UserDto;
 import mg.tsiry.invetory_management_system.enums.TransactionStatus;
@@ -23,6 +24,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -42,7 +45,7 @@ public class TransactionServiceImpl implements TransactionService {
     private final ModelMapper modelMapper;
     private final ProductRepository productRepository;
     private final SupplierRepository supplierRepository;
-    private final UserService userService;
+    private final UserRepository userRepository;
 
     @Override
     public GlobalResponse restockInventory(TransactionDto transactionDto) {
@@ -224,8 +227,11 @@ public class TransactionServiceImpl implements TransactionService {
     }
 
     private User getCurrentUser() {
-        UserDto userDto = userService.getCurrentLoggedUser();
-        return modelMapper.map(userDto, User.class);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = authentication.getName();
+
+        return userRepository.findByEmail(email).
+                orElseThrow(() -> new NotFoundException("User not found"));
     }
 
     /**

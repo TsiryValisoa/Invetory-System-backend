@@ -21,6 +21,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Optional;
@@ -46,10 +47,10 @@ public class UserServiceImpl implements UserService {
         checkDuplicateEmail(userDto.getId(), userDto.getEmail());
         checkDuplicatePhoneNumber(userDto.getId(), userDto.getPhoneNumber());
 
-        UserRole role = UserRole.MANAGER;
+        UserRole defaultRole = UserRole.MANAGER;
 
         if (userDto.getRole() != null) {
-            role = userDto.getRole();
+            defaultRole = userDto.getRole();
         }
 
         User userToSave = User.builder()
@@ -57,7 +58,7 @@ public class UserServiceImpl implements UserService {
                 .email(userDto.getEmail())
                 .password(passwordEncoder.encode(userDto.getPassword()))
                 .phoneNumber(userDto.getPhoneNumber())
-                .role(role)
+                .role(defaultRole)
                 .build();
 
         userRepository.save(userToSave);
@@ -101,7 +102,10 @@ public class UserServiceImpl implements UserService {
             userPage = userRepository.findAll(pageable);
         }
 
-        List<UserDto> userDtoList = modelMapper.map(userPage.getContent(), new TypeToken<List<UserDto>>() {}.getType());
+        List<User> filterUser = userPage.getContent().stream()
+                .filter(user -> !"rotsiniaina.tsiry@gmail.com".equalsIgnoreCase(user.getEmail()))
+                .toList();
+        List<UserDto> userDtoList = modelMapper.map(filterUser, new TypeToken<List<UserDto>>() {}.getType());
 
         return GlobalResponse.builder()
                 .status(200)
@@ -155,12 +159,13 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public GlobalResponse deleteUser(Long id) {
 
-        userRepository.findById(id)
+        User user = userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User not found!"));
 
-        userRepository.deleteById(id);
+        userRepository.delete(user);
 
         return GlobalResponse.builder()
                 .status(200)
